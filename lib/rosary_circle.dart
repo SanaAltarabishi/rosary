@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -23,9 +22,10 @@ class _CircleState extends State<Circle> {
 
   @override
   Widget build(BuildContext context) {
-    final double circleSize = MediaQuery.of(context).size.width;
-    final double buttonSize = MediaQuery.of(context).size.width * 0.01;
-    final double containerSize = MediaQuery.of(context).size.width * 0.1;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double innerContainerSize = screenWidth * 0.01;
+    final double containerSize = screenWidth * 0.1;
+    final double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -33,12 +33,13 @@ class _CircleState extends State<Circle> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(height:   MediaQuery.of(context).size.height * 0.01,),
+              SizedBox(
+                height: screenHeight * 0.01,
+              ),
               Text('target :$topIndexCont'),
               Text('remaining :$remaining'),
               SizedBox(
-                height:
-                 MediaQuery.of(context).size.height * 0.35,
+                height: screenHeight * 0.35,
               ),
               Stack(
                 alignment: Alignment.center,
@@ -65,9 +66,9 @@ class _CircleState extends State<Circle> {
                           color: Color(0xffFFF8C7),
                           shape: BoxShape.circle,
                         ),
-                        margin: EdgeInsets.all(circleSize * 0.05),
-                        width: circleSize * 0.85,
-                        height: circleSize * 0.85,
+                        margin: EdgeInsets.all(screenWidth * 0.05),
+                        width: screenWidth * 0.85,
+                        height: screenWidth * 0.85,
                         child: ValueListenableBuilder(
                           valueListenable: start,
                           builder: (context, started, _) {
@@ -76,9 +77,9 @@ class _CircleState extends State<Circle> {
                                 containerCount: indexList.length,
                                 containerColor: Colors.transparent,
                                 containerRadius: containerSize * 0.1,
-                                containerTextSize: circleSize * 0.04,
+                                containerTextSize: screenWidth * 0.04,
                                 scrollPosition: scrollPosition,
-                                circleSize: circleSize * 0.85,
+                                circleSize: screenWidth * 0.85,
                               ),
                             )
                                 .animate(
@@ -96,16 +97,16 @@ class _CircleState extends State<Circle> {
                   Align(
                     alignment: Alignment.center,
                     child: Container(
-                      width: buttonSize * 65,
-                      height: buttonSize * 65,
+                      width: innerContainerSize * 65,
+                      height: innerContainerSize * 65,
                       decoration: const BoxDecoration(
                         color: Color.fromARGB(255, 216, 194, 169),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: Container(
-                          width: circleSize * 0.5,
-                          height: circleSize * 0.5,
+                          width: screenWidth * 0.5,
+                          height: screenWidth * 0.5,
                           decoration: const BoxDecoration(
                             image: DecorationImage(
                               image: AssetImage("assets/mandela.png"),
@@ -118,8 +119,8 @@ class _CircleState extends State<Circle> {
                   Align(
                     alignment: Alignment.center,
                     child: Container(
-                      width: buttonSize * 10,
-                      height: buttonSize * 10,
+                      width: innerContainerSize * 12,
+                      height: innerContainerSize * 12,
                       decoration: const BoxDecoration(
                         boxShadow: [
                           BoxShadow(
@@ -134,7 +135,7 @@ class _CircleState extends State<Circle> {
                       child: GestureDetector(
                         onTap: () {
                           if (remaining == 0) {
-                            //dialog
+                            //dialog, you complete the target
                             // _showDialog();
                           } else if (remaining > 0) {
                             remaining--;
@@ -144,7 +145,7 @@ class _CircleState extends State<Circle> {
                         child: Center(
                           child: Text(
                             'انقر',
-                            style: TextStyle(fontSize: circleSize * 0.04),
+                            style: TextStyle(fontSize: screenWidth * 0.04),
                           ),
                         ),
                       ),
@@ -159,12 +160,12 @@ class _CircleState extends State<Circle> {
                   //     final double outerRadius = innerRadius + containerSize;
                   //     final double x = outerRadius * math.cos(angle);
                   //     final double y = outerRadius * math.sin(angle);
-                      
+
                   //     final double containerX =
                   //         circleSize / 2 + x - containerSize / 50;
                   //     final double containerY =
                   //         circleSize / 2 + y - containerSize / 50;
-                      
+
                   //     return Positioned(
                   //       left: containerX,
                   //       top: containerY,
@@ -194,18 +195,21 @@ class _CircleState extends State<Circle> {
   void _startScroll() {
     final random = math.Random();
     final double targetAngle = math.pi * 2 * random.nextDouble();
+    //? the fun nextDouble: generate double between 0 and 1, when multip with 2*pi will by in range (0 to 2π)
     final double diff = targetAngle - scrollPosition;
-
+    //? this diff will be used to determine how much the scroll position will change
+    //? تايمر دوري :
     Timer.periodic(const Duration(milliseconds: 50), (timer) {
       setState(() {
-        scrollPosition += diff.sign * 0.1;
+        scrollPosition += diff.sign * 0.1;//? creates a smooth scrolling effect
         if ((scrollPosition - targetAngle).abs() < 0.1) {
-          scrollPosition = targetAngle;
+            //? if its ture the animation considered complete, that why we cancel
+          scrollPosition = targetAngle;//? to ensure it reaches exaclty
           timer.cancel();
-          final double topAngle = (-math.pi / 3) - scrollPosition;
+          final double topAngle = (-math.pi / 3) - scrollPosition;//?60- scroll, to idntified(item) regardless of the current scroll position
           final double containerAngle = topAngle - (math.pi / indexList.length);
           final double indexDouble =
-              containerAngle / (2 * math.pi / indexList.length);
+              containerAngle / (2 * math.pi / indexList.length);//? to calculates the angle between each item in the circle.
           topIndex =
               (indexDouble.round() + indexList.length) % indexList.length;
           topIndexCont = indexList[topIndex];
